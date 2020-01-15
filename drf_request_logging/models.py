@@ -2,10 +2,9 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.conf import settings
 
-
-SETTINGS = getattr(settings, 'DRF_REQUEST_LOGGING', {})
-USER_MODEL = getattr(SETTINGS, 'USER_MODEL'),
-
+# Foreign key to the user model, as configured by setting.AUTH_USER_MODEL
+# Default: django.contrib.auth.models.User
+USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 class Request(models.Model):
     key = models.CharField(null=True, max_length=100)
@@ -13,7 +12,10 @@ class Request(models.Model):
         USER_MODEL,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL
+        on_delete=models.SET_NULL,
+        # This is required to prevent clashes in projects that already had a
+        # request model.
+        related_name='drf_requests'
     )
     scheme = models.CharField(max_length=5)
     path = models.CharField(null=True, blank=True, max_length=100)

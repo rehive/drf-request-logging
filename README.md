@@ -15,21 +15,8 @@ pip install drf-request-logging
     ]
 ```
 
-3. Add a setting to define the user model:
-
-```python
-DRF_REQUEST_LOGGING = {
-	'USER_MODEL': "example_app.User"
-}
-```
-
-4. Run migrations:
+3. Run migrations:
 
 ```sh
-manage.py makemigrations
 manage.py migrate
 ```
-
-## TODO
-
-1. Figure out how to do migratiosn with a dynamic field in the app.
