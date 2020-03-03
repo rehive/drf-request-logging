@@ -6,8 +6,11 @@ from django.conf import settings
 # Default: django.contrib.auth.models.User
 USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
+
 class Request(models.Model):
     key = models.CharField(db_index=True, null=True, max_length=100)
+    # The user who performed the request (the authenticated user).
+    # Thie value will be None if no authenticated user is available.
     user = models.ForeignKey(
         USER_MODEL,
         null=True,
@@ -17,6 +20,8 @@ class Request(models.Model):
         # request model.
         related_name='drf_requests'
     )
+    # Request related information. This data is masked so that passwords and
+    # other sensitive information may not be retrieved.
     scheme = models.CharField(max_length=5)
     path = models.CharField(
         db_index=True, null=True, blank=True, max_length=100
@@ -28,7 +33,20 @@ class Request(models.Model):
     headers = JSONField(null=True, blank=True, default=dict)
     body = JSONField(null=True, blank=True, default=dict)
     status_code = models.IntegerField(db_index=True, null=True, blank=True)
+    # The binary response data (pickled).
     response = models.BinaryField(null=True, blank=True)
+    # Resource related information. These values will be injected if the
+    # following fields are available on the request object:
+    #   _resource  (string resource name)
+    #   _resource_id (string resource ID)
+    # The resource_id will not be set unless a resource is set as well.
+    resource = models.CharField(
+        db_index=True, null=True, blank=True, max_length=50
+    )
+    resource_id = models.CharField(
+        db_index=True, null=True, blank=True, max_length=64
+    )
+    # Datetime information.
     updated = models.DateTimeField(auto_now=True, db_index=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
 
