@@ -5,6 +5,8 @@ import django.contrib.postgres.fields.jsonb
 from django.db import migrations, models
 import django.db.models.deletion
 
+from drf_request_logging.models import USER_MODEL
+
 
 class Migration(migrations.Migration):
     initial = True
@@ -31,10 +33,10 @@ class Migration(migrations.Migration):
                 ('response', models.BinaryField(blank=True, null=True)),
                 ('updated', models.DateTimeField(auto_now=True)),
                 ('created', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='drf_requests', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='drf_requests', to=USER_MODEL)),
             ],
             options={
                 'unique_together': {('key', 'user')},
             },
         ),
-	]
+    ]
