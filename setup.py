@@ -26,7 +26,8 @@ setup(
     license='MIT',
     install_requires=[
         "Django>=2.0",
-        "djangorestframework>=3.9"
+        "djangorestframework>=3.9",
+        "django-enumfields>=0.10.0"
     ],
     python_requires='>=3.4',
     classifiers=[

@@ -1,10 +1,16 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.conf import settings
+from enumfields import EnumField
+
+from drf_request_logging.enums import ResourceType
 
 # Foreign key to the user model, as configured by setting.AUTH_USER_MODEL
 # Default: django.contrib.auth.models.User
 USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+
+# An enum used to define resource types.
+RESOURCE_TYPE = getattr(settings, 'RESOURCE_TYPE', ResourceType)
 
 
 class Request(models.Model):
@@ -40,8 +46,12 @@ class Request(models.Model):
     #   _resource  (string resource name)
     #   _resource_id (string resource ID)
     # The resource_id will not be set unless a resource is set as well.
-    resource = models.CharField(
-        db_index=True, null=True, blank=True, max_length=50
+    resource = EnumField(
+        RESOURCE_TYPE,
+        db_index=True,
+        null=True,
+        blank=True,
+        max_length=50,
     )
     resource_id = models.CharField(
         db_index=True, null=True, blank=True, max_length=64
