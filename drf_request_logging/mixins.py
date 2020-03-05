@@ -171,11 +171,11 @@ class RequestMixin(object):
             # Recheck if a user was set (for auth requests).
             user = request.user if not request.user.is_anonymous else None
             # Add the resource information if any.
-            # if getattr(request, "_resource", None):
-            #     self.new_request.resource = request._resource
-            #     self.new_request.resource_id = getattr(
-            #         request, "_resource_id", None
-            #     )
+            if getattr(request, "_resource", None):
+                self.new_request.resource = request._resource
+                self.new_request.resource_id = getattr(
+                    request, "_resource_id", None
+                )
             # Add new information about the request.
             self.new_request.user = user
             self.new_request.status_code = response.status_code

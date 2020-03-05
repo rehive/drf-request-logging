@@ -46,16 +46,16 @@ class Request(models.Model):
     #   _resource  (string resource name)
     #   _resource_id (string resource ID)
     # The resource_id will not be set unless a resource is set as well.
-    # resource = EnumField(
-    #     RESOURCE_TYPE,
-    #     db_index=True,
-    #     null=True,
-    #     blank=True,
-    #     max_length=50,
-    # )
-    # resource_id = models.CharField(
-    #     db_index=True, null=True, blank=True, max_length=64
-    # )
+    resource = EnumField(
+        RESOURCE_TYPE,
+        db_index=True,
+        null=True,
+        blank=True,
+        max_length=50,
+    )
+    resource_id = models.CharField(
+        db_index=True, null=True, blank=True, max_length=64
+    )
     # Datetime information.
     updated = models.DateTimeField(auto_now=True, db_index=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
