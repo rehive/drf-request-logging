@@ -72,7 +72,7 @@ def mask_and_clean(data, masked_keys):
 
 def mask_and_clean_headers(meta):
     return mask_and_clean(
-        {k:v in meta.items() if ("HTTP_" in k or "CONTENT" in k)},
+        {k:v for k, v in meta.items() if ("HTTP_" in k or "CONTENT" in k)},
         MASKED_HEADER_KEYS
     )
 
