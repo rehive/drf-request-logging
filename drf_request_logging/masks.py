@@ -23,8 +23,7 @@ MASKED_RESPONSE_KEYS = [
     "token",
     "key",
     "otp",
-    "secret",
-    "code"
+    "secret"
 ]
 
 MASK = "*****"
