@@ -4,28 +4,7 @@ from django.db import IntegrityError
 
 from .models import Request
 from .exceptions import IdempotentRequestExistsError
-
-
-MASKED_HEADER_KEYS = [
-    'HTTP_COOKIE',
-    'HTTP_X_CSRFTOKEN',
-    'HTTP_AUTHORIZATION',
-]
-
-MASKED_BODY_KEYS = [
-    "password",
-    "password1",
-    "password2",
-    "old_password",
-    "new_password1",
-    "new_password2",
-    "token",
-    "uid",
-    "key",
-    "otp",
-    "secret",
-    "csrfmiddlewaretoken",
-]
+from .masks import mask_and_clean_headers, mask_and_clean_body
 
 
 class RequestMixin(object):
@@ -42,60 +21,14 @@ class RequestMixin(object):
         Get the request headers with sensitive values masked.
         """
 
-        def _mask_and_clean(k, v):
-            value = "****" if k in MASKED_HEADER_KEYS else v
-            return (k.replace('HTTP_', ''), value)
+        return mask_and_clean_headers(meta)
 
-        return dict(_mask_and_clean(k, v) for k, v in meta.items()
-            if ("HTTP_" in k or "CONTENT" in k))
-
-    def get_body(self, data):
+    def get_body(self, body):
         """
         Get the request body with sensitive values masked.
         """
 
-        def _mask(k, v):
-            return "****" if k in MASKED_BODY_KEYS else v
-
-        def _clean(data, new_data=None):
-            """
-            Clean the request body. This also ensures that only safe JSON
-            data gets returned.
-            """
-
-            try:
-                iterator = data.items()
-                data_type = 'dict'
-                new_data = {} if new_data is None else new_data
-
-            except AttributeError:
-                iterator = enumerate(data)
-                data_type = 'list'
-                new_data = [] if new_data is None else new_data
-
-            for k, v in iterator:
-                if isinstance(v, dict) or isinstance(v, list):
-                    if data_type == "dict":
-                        new_data[k] = _clean(v)
-                    elif data_type == "list":
-                        new_data.append(_clean(v))
-
-                elif (isinstance(v, int) or isinstance(v, str)
-                        or isinstance(v, bool)):
-                    if data_type == "dict":
-                        new_data[k] = _mask(k, v)
-                    elif data_type == "list":
-                        new_data.append(_mask(k, v))
-
-                else:
-                    if data_type == "dict":
-                        new_data[k] = _mask(k, str(v))
-                    elif data_type == "list":
-                        new_data.append(_mask(k, str(v)))
-
-            return new_data
-
-        return _clean(data)
+        return mask_and_clean_body(body)
 
     def get_idempotency_key(self, user, request):
         """

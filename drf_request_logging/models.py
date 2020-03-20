@@ -1,9 +1,13 @@
+import pickle
+
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.conf import settings
 from enumfields import EnumField
 
 from drf_request_logging.enums import ResourceType
+from drf_request_logging.masks import mask_and_clean_response_data
+
 
 # Foreign key to the user model, as configured by setting.AUTH_USER_MODEL
 # Default: django.contrib.auth.models.User
@@ -65,3 +69,8 @@ class Request(models.Model):
 
     def __str__(self):
         return str(self.path)
+
+    @property
+    def decoded_response(self):
+        response = pickle.loads(self.response)
+        return {"data": mask_and_clean_response_data(response.data)}
