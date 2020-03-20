@@ -82,4 +82,4 @@ def mask_and_clean_body(body):
 
 
 def mask_and_clean_response_data(data):
-    return mask_and_clean(body, MASKED_RESPONSE_KEYS)
+    return mask_and_clean(data, MASKED_RESPONSE_KEYS)
