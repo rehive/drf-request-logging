@@ -54,27 +54,30 @@ class RequestMixin(object):
         super().initial(request, *args, **kwargs)
 
         user = request.user if not request.user.is_anonymous else None
-        self.id_key = self.get_idempotency_key(user, request)
 
-        try:
-            self.new_request = Request.objects.create(
-                user=user,
-                key=self.id_key,
-                scheme=request.scheme,
-                path=request.path,
-                method=request.method,
-                encoding=request.encoding,
-                content_type=request.content_type,
-                params=request.GET,
-                headers=self.get_headers(request.META),
-                body=self.get_body(request.data),
-            )
-        except IntegrityError as exc:
-            self.old_request = Request.objects.get(
-                key=self.id_key,
-                user=user
-            )
-            raise IdempotentRequestExistsError()
+        if user:
+            # Set the idempotency key if it exists.
+            self.id_key = self.get_idempotency_key(user, request)
+
+            try:
+                self.new_request = Request.objects.create(
+                    user=user,
+                    key=self.id_key,
+                    scheme=request.scheme,
+                    path=request.path,
+                    method=request.method,
+                    encoding=request.encoding,
+                    content_type=request.content_type,
+                    params=request.GET,
+                    headers=self.get_headers(request.META),
+                    body=self.get_body(request.data),
+                )
+            except IntegrityError as exc:
+                self.old_request = Request.objects.get(
+                    key=self.id_key,
+                    user=user
+                )
+                raise IdempotentRequestExistsError()
 
     def handle_exception(self, exc):
         """
@@ -97,12 +100,29 @@ class RequestMixin(object):
 
         response = super().finalize_response(request, response, *args, **kwargs)
 
+        # Recheck if a user was set (for auth requests).
+        user = request.user if not request.user.is_anonymous else None
+
+        # This is an old request, resave it to get the new updated date.
         if self.old_request:
             # Update the "updated" date on the request.
             self.old_request.save()
-        elif self.new_request:
-            # Recheck if a user was set (for auth requests).
-            user = request.user if not request.user.is_anonymous else None
+        # This request belongs to a specific user.
+        elif user:
+            # This request was not previously saved because it was an
+            # anonymouse user request. Populate base request.
+            if not self.new_request:
+               self.new_request = Request(
+                    user=user,
+                    scheme=request.scheme,
+                    path=request.path,
+                    method=request.method,
+                    encoding=request.encoding,
+                    content_type=request.content_type,
+                    params=request.GET,
+                    headers=self.get_headers(request.META),
+                    body=self.get_body(request.data),
+                )
             # Add the resource information if any.
             if getattr(request, "_resource", None):
                 self.new_request.resource = request._resource
