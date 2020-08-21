@@ -58,7 +58,7 @@ class Request(models.Model):
         max_length=50,
     )
     resource_id = models.CharField(
-        db_index=True, null=True, blank=True, max_length=64
+        db_index=True, null=True, blank=True, max_length=128
     )
     # Datetime information.
     updated = models.DateTimeField(auto_now=True, db_index=True)
