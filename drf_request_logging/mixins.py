@@ -107,6 +107,8 @@ class RequestMixin(object):
         if self.old_request:
             # Update the "updated" date on the request.
             self.old_request.save()
+            # Set the idempotent replayed header to true.
+            response["Idempotent-Replayed"] = "true"
         # This request belongs to a specific user.
         elif user:
             # This request was not previously saved because it was an

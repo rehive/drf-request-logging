@@ -1,7 +1,6 @@
 import pickle
 
 from django.db import models
-from django.contrib.postgres.fields import JSONField
 from django.conf import settings
 from enumfields import EnumField
 
@@ -39,9 +38,9 @@ class Request(models.Model):
     method = models.CharField(db_index=True, max_length=10)
     encoding = models.CharField(null=True, blank=True, max_length=100)
     content_type = models.CharField(max_length=100)
-    params = JSONField(null=True, blank=True, default=dict)
-    headers = JSONField(null=True, blank=True, default=dict)
-    body = JSONField(null=True, blank=True, default=dict)
+    params = models.JSONField(null=True, blank=True, default=dict)
+    headers = models.JSONField(null=True, blank=True, default=dict)
+    body = models.JSONField(null=True, blank=True, default=dict)
     status_code = models.IntegerField(db_index=True, null=True, blank=True)
     # The binary response data (pickled).
     response = models.BinaryField(null=True, blank=True)
