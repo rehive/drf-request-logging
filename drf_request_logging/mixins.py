@@ -3,8 +3,15 @@ import pickle
 from django.db import IntegrityError
 
 from .models import Request
-from .exceptions import IdempotentRequestExistsError
-from .masks import mask_and_clean_headers, mask_and_clean_body
+from .exceptions import (
+    IdempotentRequestExistsError,
+    IdempotencyNotSupportedError
+)
+from .masks import (
+    mask_and_clean_headers,
+    mask_and_clean_body,
+    mask_and_clean_response_data
+)
 
 
 class RequestMixin(object):
@@ -12,9 +19,13 @@ class RequestMixin(object):
     Store each request and handle idempotency behaviour on requests/responses.
     """
 
+    # Store values related to this request.
     id_key = None
     new_request = None
     old_request = None
+
+    # Configure whether idempotency is supported.
+    idempotent = True
 
     def get_headers(self, meta):
         """
@@ -30,19 +41,41 @@ class RequestMixin(object):
 
         return mask_and_clean_body(body)
 
+    def get_response(self, response):
+        """
+        Get the response body with sensitive values masked.
+        """
+
+        res = response.render()
+        res.data = mask_and_clean_response_data(res.data)
+        return res
+
     def get_idempotency_key(self, user, request):
         """
         Get the idmepotency key sent in the request.
         """
 
-        # Must have a user and be POST/PUT/PATCH.
-        if (not user and request.method not in ("POST", "PUT", "PATCH",)):
-            return None
+        # Idempotency is not alowed on anonymous user endpoints.
+        if not user:
+            idempotency_allowed = False
+        # Idempotency is not allowed on non POST, PUT and PATCH methods.
+        elif request.method not in ("POST", "PUT", "PATCH",):
+            idempotency_allowed = False
+        else:
+            idempotency_allowed = self.idempotent
 
+        # Check if there is an existing idempotency key.
         try:
-            return request.META['HTTP_IDEMPOTENCY_KEY']
+            id_key = request.META['HTTP_IDEMPOTENCY_KEY']
         except KeyError:
-            return None
+            id_key = None
+
+        # If an idempotency key is used but idempotency is not allowed then
+        # throw an idempotency not suppported error.
+        if id_key and not idempotency_allowed:
+            raise IdempotencyNotSupportedError()
+
+        return id_key
 
     def initial(self, request, *args, **kwargs):
         """
@@ -55,10 +88,14 @@ class RequestMixin(object):
 
         user = request.user if not request.user.is_anonymous else None
 
+        id_key = self.get_idempotency_key(user, request)
+
         if user:
             # Set the idempotency key if it exists.
-            self.id_key = self.get_idempotency_key(user, request)
+            self.id_key = id_key
 
+            # Try log the request, if the id_key is not null and not unique an
+            # integrity error will be thrown.
             try:
                 self.new_request = Request.objects.create(
                     user=user,
@@ -134,9 +171,11 @@ class RequestMixin(object):
             # Add new information about the request.
             self.new_request.user = user
             self.new_request.status_code = response.status_code
+            # Get a stored response to save on the database.
+            stored_response = self.get_response(response)
             # TODO : Look into saving this as rendered data/text.
             # Pickle messes with the deepcopy functionality on models.
-            self.new_request.response = pickle.dumps(response.render())
+            self.new_request.response = pickle.dumps(stored_response)
             self.new_request.save()
 
         return response

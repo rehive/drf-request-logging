@@ -15,7 +15,6 @@ MASKED_BODY_KEYS = [
     "uid",
     "key",
     "otp",
-    "secret",
     "csrfmiddlewaretoken",
 ]
 
@@ -23,7 +22,6 @@ MASKED_RESPONSE_KEYS = [
     "token",
     "key",
     "otp",
-    "secret"
 ]
 
 MASK = "*****"

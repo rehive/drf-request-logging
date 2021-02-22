@@ -72,4 +72,4 @@ class Request(models.Model):
     @property
     def decoded_response(self):
         response = pickle.loads(self.response)
-        return {"data": mask_and_clean_response_data(response.data)}
+        return {"data": response.data}

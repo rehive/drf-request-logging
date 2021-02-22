@@ -3,7 +3,7 @@ from codecs import open
 from setuptools import find_packages, setup
 
 
-VERSION = '0.0.12'
+VERSION = '0.0.13'
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
@@ -29,7 +29,7 @@ setup(
         "djangorestframework>=3.9",
         "django-enumfields>=0.10.0"
     ],
-    python_requires='>=3.4',
+    python_requires='>=3.6',
     classifiers=[
         'Framework :: Django',
         'Framework :: Django :: 2.2',

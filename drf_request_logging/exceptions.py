@@ -27,4 +27,10 @@ class BaseException(Exception):
 class IdempotentRequestExistsError(BaseException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _('Idempotent request exists.')
-    default_error_slug = 'idempotency_request_exists_error'
+    default_error_slug = 'idempotent_request_exists_error'
+
+
+class IdempotencyNotSupportedError(BaseException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _('Idempotency not supported.')
+    default_error_slug = 'idempotency_not_supported_error'
