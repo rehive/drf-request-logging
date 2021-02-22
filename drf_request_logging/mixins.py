@@ -1,4 +1,5 @@
 import pickle
+from copy import deepcopy
 
 from django.db import IntegrityError
 
@@ -46,7 +47,7 @@ class RequestMixin(object):
         Get the response body with sensitive values masked.
         """
 
-        res = response.render()
+        res = deepcopy(response).render()
         res.data = mask_and_clean_response_data(res.data)
         return res
 
