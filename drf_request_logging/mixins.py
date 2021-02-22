@@ -45,9 +45,10 @@ class RequestMixin(object):
     def get_response(self, response):
         """
         Get the response body with sensitive values masked.
-        """
 
-        res = deepcopy(response).render()
+        Expects a rendered response.
+        """
+        res = deepcopy(response)
         res.data = mask_and_clean_response_data(res.data)
         return res
 
@@ -172,8 +173,9 @@ class RequestMixin(object):
             # Add new information about the request.
             self.new_request.user = user
             self.new_request.status_code = response.status_code
-            # Get a stored response to save on the database.
-            stored_response = self.get_response(response)
+            # Get a rendered and stored response to save on the database.
+            rendered_response = response.render()
+            stored_response = self.get_response(rendered_response)
             # TODO : Look into saving this as rendered data/text.
             # Pickle messes with the deepcopy functionality on models.
             self.new_request.response = pickle.dumps(stored_response)
