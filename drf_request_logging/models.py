@@ -33,7 +33,7 @@ class Request(models.Model):
     # other sensitive information may not be retrieved.
     scheme = models.CharField(max_length=5)
     path = models.CharField(
-        db_index=True, null=True, blank=True, max_length=100
+        db_index=True, null=True, blank=True, max_length=256
     )
     method = models.CharField(db_index=True, max_length=10)
     encoding = models.CharField(null=True, blank=True, max_length=100)
